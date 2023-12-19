@@ -44,12 +44,14 @@ class Plotting:
             plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
             plt . ylabel (stocks.name)
             plt.savefig(folder_definer(frequency)+"/"+stocks.name+".png", dpi = 300)
+            plt.close()
         else:
             for i in stocks.columns:
                 plt . plot (time_series ,stocks.loc[:,i])
                 plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
                 plt . ylabel (i)
                 plt.savefig(folder_definer(frequency)+"/"+i+".png", dpi = 300)
+                plt.close()
 
 
     
