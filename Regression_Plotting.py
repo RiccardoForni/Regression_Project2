@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import numpy as np
 import warnings
+from Regression_function import sp
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import seaborn as sns
 
@@ -43,14 +44,48 @@ class Plotting:
             plt . plot (time_series ,stocks.values)
             plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
             plt . ylabel (stocks.name)
-            plt.savefig(folder_definer(frequency)+"/"+stocks.name+".png", dpi = 300)
+            plt.savefig(folder_definer(frequency+"_LogLevel")+"/"+stocks.name+"_LogLevel.png", dpi = 300)
             plt.close()
         else:
             for i in stocks.columns:
                 plt . plot (time_series ,stocks.loc[:,i])
                 plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
                 plt . ylabel (i)
-                plt.savefig(folder_definer(frequency)+"/"+i+".png", dpi = 300)
+                plt.savefig(folder_definer(frequency+"_LogLevel")+"/"+i+"_LogLevel.png", dpi = 300)
+                plt.close()
+
+
+    @controlla_permesso
+    def plot_line2(self,stocks,time_series,frequency):
+        if isinstance(stocks,pd.Series):
+            plt . plot (time_series ,stocks.values)
+            plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
+            plt . ylabel (stocks.name)
+            plt.savefig(folder_definer(frequency+"_LogPrice")+"/"+stocks.name+"_LogPrice.png", dpi = 300)
+            plt.close()
+        else:
+            for i in stocks.columns:
+                plt . plot (time_series ,stocks.loc[:,i])
+                plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
+                plt . ylabel (i)
+                plt.savefig(folder_definer(frequency+"_LogPrice")+"/"+i+"_LogPrice.png", dpi = 300)
+                plt.close()
+    
+    def test(self,stock,frequency):
+        if isinstance(stock,pd.Series):
+                ax1 = plt . subplot (221)
+                sp . stats . probplot ( stock, dist ="norm",plot = plt )
+                ax1 . set_title (stock.name)
+                ax1 . set_xlabel ("")
+                plt.savefig(folder_definer(frequency+"_Prob")+"/"+i+"_LogProb .png", dpi = 300)
+                plt.close()
+        else:
+             for i in stock.columns:
+                ax1 = plt . subplot (222)
+                sp . stats . probplot ( stock[i], dist ="norm",plot = plt )    
+                ax1 . set_title (i)
+                ax1 . set_xlabel ("")
+                plt.savefig(folder_definer(frequency+"_Prob")+"/"+i+"_LogProb .png", dpi = 300)
                 plt.close()
 
 

@@ -3,7 +3,7 @@ import pandas as pd
 import Regression_function as rf
 import Regression_Plotting as rz
 
-rp = rz.Plotting(True)
+rp = rz.Plotting(False)
 sheets={"EURIBOR_3_M":"BD INTEREST RATES - EURIBOR RATE - 3 MONTH NADJ"}
 Frequency = ("m","d")
 for f in Frequency:
@@ -38,7 +38,7 @@ for f in Frequency:
     df_stocks_L =pd.DataFrame(data=(np.log(temp_stock)),columns=stock_names)
 
     
-    print(df_stocks_L)
+
     """
     df_stocks = df_stocks.iloc[1:,]
     df_stocks.index = df_factors.index = time_series
@@ -48,5 +48,14 @@ for f in Frequency:
     rp.plot_line(df_factors["LogLevel"],time_series,f)
     adfullerstocks=rf.adf_test(df_stocks_L.dropna(),21)
     adfullermarket=rf.adf_test(df_factors["LogLevel"].dropna(),21)
-
-
+    """
+    LogPrice
+    """
+    rp.plot_line2(df_stocks,time_series,f)
+    rp.plot_line2(df_factors["LogPrice"],time_series,f)
+    adfullerstocks=rf.adf_test(df_stocks.dropna(),21)
+    adfullermarket=rf.adf_test(df_factors["LogPrice"].dropna(),21)
+    
+    """ TESTING IGNORE IT
+    rp.test(rf.jacque(df_stocks_L),f)
+    """ 

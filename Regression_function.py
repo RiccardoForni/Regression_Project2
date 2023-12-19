@@ -17,10 +17,18 @@ def adf_test(stocks,maxlag=21):
     else:
         ret_df = pd.DataFrame(columns = stocks.columns)
         for e in stocks.columns:
-            print(e)
             ret_df[e] = adfuller(stocks[e] ,maxlag)
 
     return ret_df
+
+def jacque(stock):
+    if isinstance(stock,pd.Series):
+        return sp . stats . jarque_bera(stock)
+    else:
+        ret_df = pd.DataFrame(columns = stock.columns)
+        for e in stock.columns:
+            ret_df[e] = sp . stats . jarque_bera(stock[e])
+        return ret_df
 
 
 
