@@ -10,25 +10,19 @@ import scipy as sp
 
 
 def adf_test(stocks,maxlag=21):
+
+    lcol = ['ADF', 'pvalue', 'lags', 'nobs', 'critical_values', 'IC']
+    ret_df=pd.DataFrame(index = stocks.columns, columns = lcol)
+    for e in stocks.columns:
+        ret_df.loc[e:] = list(adfuller(stocks[e] ,maxlag))
     
-    if isinstance(stocks,pd.Series):
-        ret_df = pd.Series(name = stocks.name+"_adf_test")
-        ret_df = adfuller(stocks,maxlag)
-    else:
-        ret_df = pd.DataFrame(columns = stocks.columns)
-        for e in stocks.columns:
-            ret_df[e] = adfuller(stocks[e] ,maxlag)
-
     return ret_df
-
 def jacque(stock):
-    if isinstance(stock,pd.Series):
-        return sp . stats . jarque_bera(stock)
-    else:
-        ret_df = pd.DataFrame(columns = stock.columns)
-        for e in stock.columns:
-            ret_df[e] = sp . stats . jarque_bera(stock[e])
-        return ret_df
+    lcol = ["statistic","pvalue"]
+    ret_df = pd.DataFrame(index = stock.columns,columns = lcol)
+    for e in stock.columns:
+            ret_df.loc[e:]  = list(sp . stats . jarque_bera(stock[e]))
+    return ret_df
 
 
 

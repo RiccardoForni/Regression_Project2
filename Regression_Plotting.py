@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import numpy as np
 import warnings
+import statsmodels.graphics.tsaplots as smp
 from Regression_function import sp
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import seaborn as sns
@@ -39,14 +40,28 @@ class Plotting:
         self.allow_execution = allow_execution
 
     @controlla_permesso
+    def plot_correlation(self,Stocks,nlg,f):    
+        for i in Stocks.columns:
+            smp.plot_acf(Stocks.loc[:,i], lags = nlg)
+            plt . title ('Log prices - '+f+' - ACF ')
+            plt.savefig(folder_definer(f+"_Correlation_ACF")+"/"+i+"_Correlation_ACF.png", dpi = 300)
+
+            smp.plot_pacf(Stocks.loc[:,i], lags = nlg)
+            plt . title ('Log prices - '+f+' - PACF ')
+            plt.savefig(folder_definer(f+"__Correlation_PACF")+"/"+i+"_Correlation_PACF.png", dpi = 300)
+
+            plt.close("all")
+
+    @controlla_permesso
+    def plot_simple(self,stocks,frequency):
+         for i in stocks.columns:
+             plt.plot(stocks.loc[:,i])
+             plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
+             plt . ylabel (i)
+             plt.savefig(folder_definer(frequency+"_LogLevel")+"/"+i+"_LogLevel.png", dpi = 300)
+             plt.close()
+    @controlla_permesso
     def plot_line(self,stocks,time_series,frequency):
-        if isinstance(stocks,pd.Series):
-            plt . plot (time_series ,stocks.values)
-            plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
-            plt . ylabel (stocks.name)
-            plt.savefig(folder_definer(frequency+"_LogLevel")+"/"+stocks.name+"_LogLevel.png", dpi = 300)
-            plt.close()
-        else:
             for i in stocks.columns:
                 plt . plot (time_series ,stocks.loc[:,i])
                 plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
@@ -57,37 +72,42 @@ class Plotting:
 
     @controlla_permesso
     def plot_line2(self,stocks,time_series,frequency):
-        if isinstance(stocks,pd.Series):
-            plt . plot (time_series ,stocks.values)
-            plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
-            plt . ylabel (stocks.name)
-            plt.savefig(folder_definer(frequency+"_LogPrice")+"/"+stocks.name+"_LogPrice.png", dpi = 300)
-            plt.close()
-        else:
             for i in stocks.columns:
                 plt . plot (time_series ,stocks.loc[:,i])
                 plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
                 plt . ylabel (i)
                 plt.savefig(folder_definer(frequency+"_LogPrice")+"/"+i+"_LogPrice.png", dpi = 300)
                 plt.close()
-    
-    def test(self,stock,frequency):
-        if isinstance(stock,pd.Series):
+    def plot_line3(self,stocks,frequency):
+            for i in stocks.columns:
+                m=stocks[i] . mean ()
+                s=stocks[i] . std ()
                 ax1 = plt . subplot (221)
-                sp . stats . probplot ( stock, dist ="norm",plot = plt )
-                ax1 . set_title (stock.name)
-                ax1 . set_xlabel ("")
-                plt.savefig(folder_definer(frequency+"_Prob")+"/"+i+"_LogProb .png", dpi = 300)
+                plt . plot ( stocks[i] )
+                ax1 . set_title (i)
+                ax2 = plt . subplot (222)
+                plt . plot ( np . random . randn (stocks.shape[0] ,1) *s+ m)
+                ax3 = plt . subplot (223)
+                plt.savefig(folder_definer(frequency+"_Random")+"/"+i+"_Random.png", dpi = 300)
                 plt.close()
-        else:
-             for i in stock.columns:
-                ax1 = plt . subplot (222)
+    def prob_plot(self,stock,frequency):
+            for i in stock.columns:
+                ax1 = plt . subplot ()
                 sp . stats . probplot ( stock[i], dist ="norm",plot = plt )    
                 ax1 . set_title (i)
                 ax1 . set_xlabel ("")
                 plt.savefig(folder_definer(frequency+"_Prob")+"/"+i+"_LogProb .png", dpi = 300)
                 plt.close()
 
+    def histo_plot(self,stock,frequency):
+        bins = 100 if frequency == 'd' else 25
+        for i in stock.columns:
+                ax1 = plt . subplot ()
+                plt . hist ( stock[i], bins, density = True )    
+                ax1 . set_title (i)
+                ax1 . set_xlabel ("")
+                plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_Loghisto .png", dpi = 300)
+                plt.close()
 
     
     """
