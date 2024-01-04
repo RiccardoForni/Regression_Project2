@@ -99,11 +99,30 @@ class Plotting:
                 plt.savefig(folder_definer(frequency+"_Prob")+"/"+i+"_LogProb .png", dpi = 300)
                 plt.close()
 
-    def histo_plot(self,stock,frequency):
-        bins = 100 if frequency == 'd' else 25
+    def histo_plot(self,stock,frequency,bins = None):
+        if bins is None: 
+            if frequency == "d":
+                bins = 1000
+            else:
+                bins = 90
         for i in stock.columns:
                 ax1 = plt . subplot ()
-                plt . hist ( stock[i], bins, density = True )    
+                plt . hist ( np.array(stock['ADF']), bins)    
+                ax1 . set_title (i)
+                ax1 . set_xlabel ("")
+                plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_Loghisto .png", dpi = 300)
+                plt.close()
+   
+    def histo_plot2(self,stock,stock2,frequency,bins = None):
+        if bins is None: 
+            if frequency == "d":
+                bins = 1000
+            else:
+                bins = 90
+        for i in stock.columns:
+                ax1 = plt . subplot ()
+                plt . hist ( stock[i], bins)
+                plt . hist ( stock2[i], bins)   
                 ax1 . set_title (i)
                 ax1 . set_xlabel ("")
                 plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_Loghisto .png", dpi = 300)
