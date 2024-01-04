@@ -8,14 +8,13 @@ import numpy as np
 import scipy as sp
 
 
-
 def adf_test(stocks,maxlag=21):
 
-    lcol = ['ADF', 'pvalue', 'lags', 'nobs', 'critical_values', 'IC']
+    lcol = ['ADF', 'pvalue', 'lags', 'nobs', 'icbest',"1%","5%","10%"]
     ret_df=pd.DataFrame(index = stocks.columns, columns = lcol)
     for e in stocks.columns:
-        ret_df.loc[e:] = list(adfuller(stocks[e] ,maxlag))
-    
+        adf,pvalue,lags,nobs,critical_values,icbest = adfuller(stocks[e] ,maxlag)
+        ret_df.loc[e:] = [adf,pvalue,lags,nobs,icbest,critical_values['1%'],critical_values['5%'],critical_values['10%']]
     return ret_df
 def jacque(stock):
     lcol = ["statistic","pvalue"]
