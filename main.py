@@ -56,11 +56,14 @@ for f in Frequency:
     """
 
     #when the plot beeing print, the file is called LogLevel_Correlation...
+    rp.plot_line(df_equity_ret,time_series,f) 
     rp.plot_line(df_equity_L,time_series,f) 
     rp.plot_simple(Economic_Data,"Monthly")
     """
     Correlation plots
     """
+    rp.plot_correlation(df_equity_ret, 20, f)
+    rp.plot_correlation(df_eco_ret, 20, f) 
     rp.plot_correlation(df_equity_L, 20, f)     
     rp.plot_correlation(Economic_Data, 20,"Monthly")  
     
