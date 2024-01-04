@@ -13,13 +13,13 @@ def union_sheets_value(Dataframe,name_xlsx,frequency = ""):
             Dataframe = pd.read_excel(name_xlsx,s)
             Dataframe_to_return.insert(i,s,Dataframe.iloc[:,1])
             i = i+1
-    return Dataframe_to_return
+    return Dataframe_to_return,sheet_name
 
 
 rp = rz.Plotting(False)
 Frequency = ("m","d")
 #Take static data
-Economic_Data = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
+Economic_Data,list_name = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
 Interest_Rate = pd . read_excel ('Gmarket.xlsx', 'Bund')
 Stocks = pd . read_excel ('Stocks.xlsx', sheet_name=None)
 
@@ -47,7 +47,7 @@ for f in Frequency:
     """
     Calculating LogLevel and LogPrice for market and stocks
     """
-
+    df_eco_ret = pd.DataFrame(data=(100 *( np . log ( Economic_Data ) -np . log ( Economic_Data . shift (1) ))), columns = list_name)
     df_equity_ret = pd.DataFrame(data=(100 *( np . log ( temp_stock ) -np . log ( temp_stock . shift (1) ))),columns = stock_names)
     df_equity_L =pd.DataFrame(data=(np.log(temp_stock)),columns=stock_names)
 
@@ -63,47 +63,28 @@ for f in Frequency:
     """
     rp.plot_correlation(df_equity_L, 20, f)     
     rp.plot_correlation(Economic_Data, 20,"Monthly")  
-
-    df_m_eco_cut = Economic_Data.iloc[:-24,:]
-    """
-    if f == "m":
-         df_m_cut = df_equity_L.iloc[:-24,:]
-         df_ret_m_cut = df_equity_ret.iloc[:-24,:]
-         adfullerstocks=rf.adf_test(df_m_cut,21)
-         adf_ret_monthly_cut = rf.adf_test(df_ret_m_cut,21)
-    else:
-         n = int(np.round(df_equity_L.dropna().shape[0] * 0.4) )
-         df_ret_d_cut = df_equity_ret.iloc[:-24,:]
-         df_equity_L_d_cut = df_equity_L.iloc[:-n,:] 
-         adfullerstocks=rf.adf_test(df_equity_L_d_cut,21)
-         adf_ret_daily_cut = rf.adf_test(df_equity_L_d_cut,21)
-
-    adfullereco=rf.adf_test(df_m_eco_cut,21)
-
-    """
-
     
 
     """
-    adfullerstocks=rf.adf_test(df_stocks_L.dropna(),21)
-    adfullermarket=rf.adf_test(df_factors["LogLevel"].to_frame().dropna(),21)
+    ADF TEST 
     """
+    #delete last 24 month
+
+    #delete last 24 month and delete null value or delete 5% of daily
+    n = int(np.round(df_equity_L.dropna().shape[0] * 0.05) ) if f == "d" else 24
+    nlag = 21
+    #Cuts
+    df_eco_cut = Economic_Data.iloc[:-24,:]
+    df_eco_ret_cut = df_eco_ret.dropna().iloc[:-24,:]
+    df_log_cut = df_equity_L.dropna().iloc[:-n,:]
+    df_ret_cut = df_equity_ret.dropna().iloc[:-n,:]
     
-    """
-    rp.plot_line2(df_stocks,time_series,f)
-    rp.plot_line2(df_factors["LogPrice"].to_frame(),time_series,f)
-    adfullerstocks=rf.adf_test(df_stocks.dropna(),21)
-    adfullermarket=rf.adf_test(df_factors["LogPrice"].to_frame().dropna(),21)
+    adf_log = rf.adf_test(df_log_cut,nlag)
+    adf_ret=rf.adf_test(df_ret_cut,nlag)
+    adf_eco=rf.adf_test(df_eco_cut,21)
+    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,21)
+
+    rp.histo_plot2(adf_log,adf_ret,f)
+    rp.histo_plot2(adf_eco,adf_eco_ret_cut,f,90)
+
     
-    df_stock_L_jacque = rf.jacque(df_stocks_L.dropna())
-    df_stock_jacque = rf.jacque(df_stocks.dropna())
-
-    df_Market_jacque = rf.jacque(df_factors.dropna())
-
-    rp.plot_line3(df_stocks,f)
-
-    rp.prob_plot(df_stocks,f)
-    
-
-    rp.histo_plot(df_stocks,f)
-    """
