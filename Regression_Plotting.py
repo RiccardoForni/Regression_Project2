@@ -40,7 +40,7 @@ class Plotting:
         self.allow_execution = allow_execution
 
     @controlla_permesso
-    def plot_correlation(self,Stocks,nlg,f):    
+    def plot_correlation(self,Stocks,nlg,f,diff):    
         for i in Stocks.columns:
             smp.plot_acf(Stocks.loc[:,i], lags = nlg)
             plt . title ('Log prices - '+f+' - ACF ')
@@ -48,7 +48,7 @@ class Plotting:
 
             smp.plot_pacf(Stocks.loc[:,i], lags = nlg)
             plt . title ('Log prices - '+f+' - PACF ')
-            plt.savefig(folder_definer(f+"__Correlation_PACF")+"/"+i+"_Correlation_PACF.png", dpi = 300)
+            plt.savefig(folder_definer(f+"__Correlation_PACF")+"/"+i+"-"+diff+"_Correlation_PACF.png", dpi = 300)
 
             plt.close("all")
 
@@ -116,13 +116,13 @@ class Plotting:
     def histo_plot2(self,stock,stock2,frequency,bins = None):
         if bins is None: 
             if frequency == "d":
-                bins = 1000
+                bins = 100
             else:
                 bins = 90
         for i in stock.columns:
                 ax1 = plt . subplot ()
-                plt . hist ( stock[i], bins)
-                plt . hist ( stock2[i], bins)   
+                plt . hist ( stock[i:], bins,density=True)
+                plt . hist ( stock2[i:], bins,density=True)   
                 ax1 . set_title (i)
                 ax1 . set_xlabel ("")
                 plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_Loghisto .png", dpi = 300)
@@ -133,13 +133,18 @@ class Plotting:
     
     ############################## OLD PROJECT #####################
     """
-    @controlla_permesso
-    def plotbar(self,P,SavePath, one_value = 0.01, five_value = 0.05, 
-                ten_value = 0.1, obj = ''):
+    
+    def plotbar(self,P,frequency,diff, one_value = 0.01, five_value = 0.05, 
+                ten_value = 0.1, obj = '',):
         """/3_p_value_plots/"""
         variable = P.name
         P = pd.DataFrame(data = P, columns = [variable])
-        mean = P.loc['Mean', variable]
+        try:
+            mean = P.loc['Mean', variable]
+        except:
+            mean= 0.0
+        if obj is '':
+            obj = variable
         P['stock_names'] = P.index
 
         def bar_highlight(value, one_value, 
@@ -168,12 +173,8 @@ class Plotting:
         x_pos = range(P['stock_names'].shape[0])
         plt.xticks(x_pos, P['stock_names'], rotation=90)
         plt.title(obj)
-        
         variable = variable.replace(":","_")
-        plt.savefig(folder_definer(SavePath)+"/"+variable+".png")
-        if allow_clean:
-            plt.show()
-        
+        plt.savefig(folder_definer(frequency+"_plot")+"/"+variable+"_"+diff+".png")
         plt.close()
         
     @controlla_permesso

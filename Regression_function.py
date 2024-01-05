@@ -3,10 +3,51 @@ import statsmodels.stats.diagnostic as smd
 import statsmodels.stats.stattools as smt
 import statsmodels.tsa.stattools as smtime
 from statsmodels.tsa.stattools import adfuller
+from statsmodels.stats.diagnostic import acorr_ljungbox
 import pandas as pd
 import numpy as np
 import scipy as sp
 
+import statsmodels.api as sm
+
+def find_best_arma_model(ts):
+    best_aic = np.inf
+    best_order = None
+
+    for p in range(5):  
+        for q in range(5):
+            model = sm.tsa.ARIMA(ts, order=(p,0,q))
+            results = model.fit()
+            aic = results.aic
+            if aic < best_aic:
+                best_aic = aic
+                best_order = (p,0, q)
+            else:
+                None
+    return best_order
+
+def test(df):
+    dict_ret={}
+    for i in df.columns:
+        best_order = find_best_arma_model(df[i])
+        print("Best order for ARMA:", best_order)
+
+        best_model = sm.tsa.ARIMA(df[i], order=best_order)
+        dict_ret[i] = best_model.fit()
+    return dict_ret
+
+
+
+
+def jungbox_test(resid,maxlag):
+    lcol = ['lb_stat ', 'lb_pvalue ', 'bp_stat ', 'bp_pvalue']
+    ret_df=pd.DataFrame(index = resid.keys(), columns = lcol)
+    for e in resid.keys():
+        temp_df= acorr_ljungbox(resid[e].resid ,maxlag)
+        for i in temp_df.columns:
+            ret_df.loc[e,i] = [temp_df[i]]
+    print(ret_df)
+    return ret_df
 
 def adf_test(stocks,maxlag=21):
 

@@ -43,6 +43,7 @@ for f in Frequency:
         
         i = i+1
     temp_stock.insert(i,'GDAXI_'+f,Market)
+    stock_names.append('GDAXI_'+f)
         
     """
     Calculating LogLevel and LogPrice for market and stocks
@@ -57,15 +58,15 @@ for f in Frequency:
 
     #when the plot beeing print, the file is called LogLevel_Correlation...
     rp.plot_line(df_equity_ret,time_series,f) 
-    rp.plot_line(df_equity_L,time_series,f) 
+    rp.plot_line2(df_equity_L,time_series,f) 
     rp.plot_simple(Economic_Data,"Monthly")
     """
     Correlation plots
     """
-    rp.plot_correlation(df_equity_ret, 20, f)
-    rp.plot_correlation(df_eco_ret, 20, f) 
-    rp.plot_correlation(df_equity_L, 20, f)     
-    rp.plot_correlation(Economic_Data, 20,"Monthly")  
+    rp.plot_correlation(df_equity_ret, 20, f,"ret")
+    rp.plot_correlation(df_eco_ret, 20, f,"Eco_Ret") 
+    rp.plot_correlation(df_equity_L, 20, f,"log")     
+    rp.plot_correlation(Economic_Data, 20,"Monthly","Eco")  
     
 
     """
@@ -86,8 +87,28 @@ for f in Frequency:
     adf_ret=rf.adf_test(df_ret_cut,nlag)
     adf_eco=rf.adf_test(df_eco_cut,21)
     adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,21)
-
+    print(adf_log)
+    for i in adf_log.columns:
+        rp.plotbar(adf_log[i],f,"Log") 
+        rp.plotbar(adf_ret[i],f,"ret")
+    for i in adf_eco.columns:
+        rp.plotbar(adf_eco.T.loc[:,i],f,"Log")
+        rp.plotbar(adf_eco_ret_cut.T.loc[:,i],f,"ret")
+    """
+    for i in adf_log.T.columns:
+        rp.plotbar(adf_log.T.loc[:,i],f,"Log")
+        rp.plotbar(adf_ret.T.loc[:,i],f,"ret")
+    for i in adf_eco.T.columns:
+        rp.plotbar(adf_eco.T.loc[:,i],f,"Log")
+        rp.plotbar(adf_eco_ret_cut.T.loc[:,i],f,"ret")
+    """
+         
+    """
     rp.histo_plot2(adf_log,adf_ret,f)
     rp.histo_plot2(adf_eco,adf_eco_ret_cut,f,90)
+    """
+    """
+    rf.jungbox_test(rf.test(df_log_cut),10)
+    """
 
     
