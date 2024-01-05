@@ -39,6 +39,12 @@ class Plotting:
     def __init__(self, allow_execution):
         self.allow_execution = allow_execution
 
+    def test(self,table_str):
+        fig, ax = plt.subplots(figsize=(8, 3))
+        ax.text(0.1, 0.1, table_str, fontsize=10, va='center', ha='left')
+        ax.axis('off')
+        plt.show()
+
     @controlla_permesso
     def plot_correlation(self,Stocks,nlg,f,diff):    
         for i in Stocks.columns:
@@ -116,17 +122,19 @@ class Plotting:
     def histo_plot2(self,stock,stock2,frequency,bins = None):
         if bins is None: 
             if frequency == "d":
-                bins = 100
+                bins = 1000
             else:
                 bins = 90
         for i in stock.columns:
                 ax1 = plt . subplot ()
-                plt . hist ( stock[i:], bins,density=True)
-                plt . hist ( stock2[i:], bins,density=True)   
-                ax1 . set_title (i)
-                ax1 . set_xlabel ("")
+                plt . hist ( stock[i], bins,density=True)
+                plt.title(i)
                 plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_Loghisto .png", dpi = 300)
-                plt.close()
+                plt.figure()
+                plt . hist ( stock2[i], bins,density=True)   
+                plt.title(i)
+                plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_rethisto .png", dpi = 300)
+                plt.close("all")
 
     
     """

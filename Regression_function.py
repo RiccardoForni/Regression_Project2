@@ -10,33 +10,33 @@ import scipy as sp
 
 import statsmodels.api as sm
 
-def find_best_arma_model(ts):
-    best_aic = np.inf
-    best_order = None
+def stationarity_and_not_stationary(df):
 
-    for p in range(5):  
-        for q in range(5):
-            model = sm.tsa.ARIMA(ts, order=(p,0,q))
-            results = model.fit()
-            aic = results.aic
-            if aic < best_aic:
-                best_aic = aic
-                best_order = (p,0, q)
-            else:
-                None
-    return best_order
+    stat = non_stat= []
+    for i,j in zip(df['pvalue'], df.index):
+        
+        stat.append(j)  if i >= 0.05 else non_stat.append(j)
+            
+    return stat,non_stat
 
-def test(df):
-    dict_ret={}
+def table(df):
+    
+    lrow = list(df[df.columns[0]].describe().index)
+    lrow.append('Skewness')
+    lrow.append('Kurtosis')
+        
+    ret_df = pd.DataFrame(index = lrow, columns = df.columns)
+    
     for i in df.columns:
-        best_order = find_best_arma_model(df[i])
-        print("Best order for ARMA:", best_order)
-
-        best_model = sm.tsa.ARIMA(df[i], order=best_order)
-        dict_ret[i] = best_model.fit()
-    return dict_ret
-
-
+        
+        l = list(df[i].describe())
+        l.append(df[i].skew())
+        l.append(df[i].kurt())
+        
+        ret_df.loc[:,i] = l
+        
+    return ret_df
+    
 
 
 def jungbox_test(resid,maxlag):
