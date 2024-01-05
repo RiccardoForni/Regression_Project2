@@ -75,14 +75,14 @@ for f in Frequency:
     """
     Table
     """
+    """
     table_log = rf.table(df_equity_L)
 
     table_eco = rf.table(Economic_Data)
-
+    """
     """
     ADF TEST 
     """
-    #delete last 24 month
 
     #delete last 24 month and delete null value or delete 4% of daily
     n = int(np.round(df_equity_L.dropna().shape[0] * 0.04) ) if f == "d" else 24
@@ -97,7 +97,35 @@ for f in Frequency:
     adf_ret=rf.adf_test(df_ret_cut,nlag)
     adf_eco=rf.adf_test(df_eco_cut,21)
     adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,21)
-    stat,non_stat=rf.stationarity_and_not_stationary(adf_log)
+
+    ret_stat,ret_non_stat=rf.stationarity_and_not_stationary(adf_log)
+    eco_stat,eco_non_stat=rf.stationarity_and_not_stationary(adf_eco)
+    eco_ret_stat,eco_ret_non_stat=rf.stationarity_and_not_stationary(adf_eco_ret_cut)
+
+    for i in adf_log.columns:
+        rp.plotbar(adf_log[i],f,"Log") 
+    for i in adf_eco.columns:
+        rp.plotbar(adf_eco[i],f,"Log")
+    
+
+    #First difference
+    df_ret_cut = df_ret_cut.loc[:,ret_non_stat]
+    for i in ret_stat:
+        df_ret_cut[i] = df_log_cut.iloc[:-n,:][i]
+    df_eco_ret_cut = df_eco_ret_cut.loc[:,ret_non_stat]
+    for i in eco_ret_stat:
+         df_eco_ret_cut[i] = df_eco_cut[i]
+    
+    adf_ret=rf.adf_test(df_ret_cut,nlag)
+
+    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,21)
+    
+    for i in adf_log.columns:
+        rp.plotbar(adf_ret[i],f,"ret")
+    for i in adf_eco.columns:
+        rp.plotbar(adf_eco_ret_cut[i],f,"ret")
+    
+    """
     table = PrettyTable(["Stationary"])
     for row in np.array(stat).reshape(6, 1):
         table.add_row(row)
@@ -112,7 +140,7 @@ for f in Frequency:
         file.write(table.get_string())
     with open('Non_Stationary.txt', 'w') as file:
         file.write(table2.get_string())
-        
+    """
     for i in adf_log.columns:
         rp.plotbar(adf_log[i],f,"Log") 
         rp.plotbar(adf_ret[i],f,"ret")
