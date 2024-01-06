@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from prettytable import PrettyTable
 import Regression_function as rf
 import Regression_Plotting as rz
 
@@ -18,7 +17,7 @@ def union_sheets_value(Dataframe,name_xlsx,frequency = ""):
     return Dataframe_to_return,sheet_name
 
 
-rp = rz.Plotting(False)
+rp = rz.Plotting(True)
 Frequency = ("m","d")
 #Take static data
 Economic_Data,list_name = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
@@ -75,11 +74,13 @@ for f in Frequency:
     """
     Table
     """
-    """
+    
     table_log = rf.table(df_equity_L)
 
     table_eco = rf.table(Economic_Data)
-    """
+    table_log.to_excel("table_log"+f+".xlsx")
+    table_eco.to_excel("table_eco.xlsx")
+
     """
     ADF TEST 
     """
@@ -112,17 +113,17 @@ for f in Frequency:
     df_ret_cut = df_ret_cut.loc[:,ret_non_stat]
     for i in ret_stat:
         df_ret_cut[i] = df_log_cut.iloc[:-n,:][i]
-    df_eco_ret_cut = df_eco_ret_cut.loc[:,ret_non_stat]
+    df_eco_ret_cut = df_eco_ret_cut.loc[:,eco_ret_non_stat]
     for i in eco_ret_stat:
          df_eco_ret_cut[i] = df_eco_cut[i]
     
-    adf_ret=rf.adf_test(df_ret_cut,nlag)
+    adf_ret=rf.adf_test(df_ret_cut.dropna(),nlag)
 
-    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,21)
+    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut.dropna(),21)
     
-    for i in adf_log.columns:
-        rp.plotbar(adf_ret[i],f,"ret")
-    for i in adf_eco.columns:
+    for i in df_ret_cut.columns:
+        rp.plotbar(df_ret_cut[i],f,"ret")
+    for i in adf_eco_ret_cut.columns:
         rp.plotbar(adf_eco_ret_cut[i],f,"ret")
     
     """
@@ -141,13 +142,14 @@ for f in Frequency:
     with open('Non_Stationary.txt', 'w') as file:
         file.write(table2.get_string())
     """
+    """
     for i in adf_log.columns:
         rp.plotbar(adf_log[i],f,"Log") 
         rp.plotbar(adf_ret[i],f,"ret")
     for i in adf_eco.columns:
         rp.plotbar(adf_eco[i],f,"Log")
         rp.plotbar(adf_eco_ret_cut[i],f,"ret")
-    
+    """
     rp.histo_plot2(df_log_cut,df_ret_cut,f)
     rp.histo_plot2(df_eco_cut,df_eco_ret_cut,f,90)
     
