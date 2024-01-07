@@ -18,7 +18,7 @@ def union_sheets_value(Dataframe,name_xlsx,frequency = ""):
 
 
 rp = rz.Plotting(True)
-Frequency = ("m","d")
+Frequency = ("d","m")
 #Take static data
 Economic_Data,list_name = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
 Interest_Rate = pd . read_excel ('Gmarket.xlsx', 'Bund')
@@ -57,19 +57,21 @@ for f in Frequency:
     End
     """
 
-    #when the plot beeing print, the file is called LogLevel_Correlation...
+    #when the plot beeing print, the file  is called LogLevel_Correlation...
     rp.plot_line(df_equity_ret,time_series,f) 
-    rp.plot_line2(df_equity_L,time_series,f) 
+    rp.plot_line2(df_equity_L,time_series,f)
     rp.plot_simple(Economic_Data,"Monthly")
 
-
+    """
+    FATTO 2
+    """
     """
     Correlation plots
     """
-    rp.plot_correlation(df_equity_ret, 20, f,"ret")
-    rp.plot_correlation(df_eco_ret, 20, f,"Eco_Ret") 
-    rp.plot_correlation(df_equity_L, 20, f,"log")     
-    rp.plot_correlation(Economic_Data, 20,"Monthly","Eco")  
+    rp.plot_correlation(df_equity_ret.dropna(), 20, f,"ret")
+    rp.plot_correlation(df_eco_ret.dropna(), 20, f,"Eco_Ret") 
+    rp.plot_correlation(df_equity_L.dropna(), 20, f,"log")     
+    rp.plot_correlation(Economic_Data.dropna(), 20,"Monthly","Eco")  
     
     """
     Table
@@ -85,9 +87,9 @@ for f in Frequency:
     ADF TEST 
     """
 
-    #delete last 24 month and delete null value or delete 4% of daily
-    n = int(np.round(df_equity_L.dropna().shape[0] * 0.04) ) if f == "d" else 24
-    nlag = 21
+    #delete last 24 month and delete null value or delete 5% of daily
+    n = int(np.round(df_equity_L.dropna().shape[0] * 0.05) ) if f == "d" else 24
+    nlag = 22 if f == "d" else 12
     #Cuts
     df_eco_cut = Economic_Data.iloc[:-24,:]
     df_eco_ret_cut = df_eco_ret.dropna().iloc[:-24,:]
@@ -96,12 +98,18 @@ for f in Frequency:
     
     adf_log = rf.adf_test(df_log_cut,nlag)
     adf_ret=rf.adf_test(df_ret_cut,nlag)
-    adf_eco=rf.adf_test(df_eco_cut,21)
-    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,21)
+    adf_eco=rf.adf_test(df_eco_cut,nlag)
+    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,nlag)
 
+    adf_log.to_excel("pippo.xlsx")
+
+    #to excel, eco and log
+    #SE sono stazionari fare arma altrimenti renderli stazionari
     ret_stat,ret_non_stat=rf.stationarity_and_not_stationary(adf_log)
     eco_stat,eco_non_stat=rf.stationarity_and_not_stationary(adf_eco)
     eco_ret_stat,eco_ret_non_stat=rf.stationarity_and_not_stationary(adf_eco_ret_cut)
+
+
 
     for i in adf_log.columns:
         rp.plotbar(adf_log[i],f,"Log") 
@@ -111,50 +119,32 @@ for f in Frequency:
 
     #First difference
     df_ret_cut = df_ret_cut.loc[:,ret_non_stat]
+
     for i in ret_stat:
         df_ret_cut[i] = df_log_cut.iloc[:-n,:][i]
+
     df_eco_ret_cut = df_eco_ret_cut.loc[:,eco_ret_non_stat]
+
     for i in eco_ret_stat:
          df_eco_ret_cut[i] = df_eco_cut[i]
     
+
     adf_ret=rf.adf_test(df_ret_cut.dropna(),nlag)
 
-    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut.dropna(),21)
-    
-    for i in df_ret_cut.columns:
-        rp.plotbar(df_ret_cut[i],f,"ret")
-    for i in adf_eco_ret_cut.columns:
-        rp.plotbar(adf_eco_ret_cut[i],f,"ret")
-    
+    adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut.dropna(),nlag)
     """
-    table = PrettyTable(["Stationary"])
-    for row in np.array(stat).reshape(6, 1):
-        table.add_row(row)
-
-    table2 = PrettyTable(["Non Stationary"])
-    for row in np.array(non_stat).reshape(6, 1):
-        table2.add_row(row)
-
-    
-    # Visualizza la tabella
-    with open('Stationary.txt', 'w') as file:
-        file.write(table.get_string())
-    with open('Non_Stationary.txt', 'w') as file:
-        file.write(table2.get_string())
-    """
-    """
-    for i in adf_log.columns:
-        rp.plotbar(adf_log[i],f,"Log") 
-        rp.plotbar(adf_ret[i],f,"ret")
-    for i in adf_eco.columns:
-        rp.plotbar(adf_eco[i],f,"Log")
-        rp.plotbar(adf_eco_ret_cut[i],f,"ret")
+    rp.plotbar(df_ret_cut["pvalue"],f,"ret")
+    rp.plotbar(adf_eco_ret_cut["pvalue"],f,"ret")
     """
     rp.histo_plot2(df_log_cut,df_ret_cut,f)
     rp.histo_plot2(df_eco_cut,df_eco_ret_cut,f,90)
     
     """
     rf.jungbox_test(rf.test(df_log_cut),10)
+    """
+
+    """
+    ACF E PACF RESIDUI
     """
 
     
