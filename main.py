@@ -18,7 +18,7 @@ def union_sheets_value(Dataframe,name_xlsx,frequency = ""):
 
 
 rp = rz.Plotting(True)
-Frequency = ("d","m")
+Frequency = ("m","d")
 #Take static data
 Economic_Data,list_name = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
 Interest_Rate = pd . read_excel ('Gmarket.xlsx', 'Bund')
@@ -101,7 +101,10 @@ for f in Frequency:
     adf_eco=rf.adf_test(df_eco_cut,nlag)
     adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut,nlag)
 
-    adf_log.to_excel("pippo.xlsx")
+    adf_log.to_excel(rz.folder_definer("excel")+"adf_log_"+f+".xlsx")
+    adf_ret.to_excel(rz.folder_definer("excel")+"adf_ret_"+f+".xlsx")
+    adf_eco.to_excel(rz.folder_definer("excel")+"adf_eco.xlsx")
+    adf_eco_ret_cut.to_excel(rz.folder_definer("excel")+"adf_eco_ret_cut.xlsx")
 
     #to excel, eco and log
     #SE sono stazionari fare arma altrimenti renderli stazionari
@@ -129,15 +132,41 @@ for f in Frequency:
          df_eco_ret_cut[i] = df_eco_cut[i]
     
 
-    adf_ret=rf.adf_test(df_ret_cut.dropna(),nlag)
+    adf_ret_cut=rf.adf_test(df_ret_cut.dropna(),nlag)
 
     adf_eco_ret_cut=rf.adf_test(df_eco_ret_cut.dropna(),nlag)
-    """
-    rp.plotbar(df_ret_cut["pvalue"],f,"ret")
-    rp.plotbar(adf_eco_ret_cut["pvalue"],f,"ret")
-    """
+    
+    adf_ret_cut.to_excel(rz.folder_definer("excel_first_diff")+"adf_ret_cut_"+f+"_post_first_diff.xlsx")
+    adf_eco_ret_cut.to_excel(rz.folder_definer("excel_first_diff")+"adf_eco_ret_post_first_diff.xlsx")
+    for i,y in zip(adf_ret_cut.columns,adf_eco_ret_cut.columns):
+        rp.plotbar(adf_ret_cut[i],f,"ret_first_diff")
+        rp.plotbar(adf_eco_ret_cut[y],f,"eco_ret_first_diff")
+    
     rp.histo_plot2(df_log_cut,df_ret_cut,f)
     rp.histo_plot2(df_eco_cut,df_eco_ret_cut,f,90)
+    """
+    
+    timedfret=pd.date_range(start='30/09/2013',freq=str.upper(f), periods=df_ret_cut.shape[0])
+    timedeco=pd.date_range(start='30/09/2013',freq="M", periods=df_eco_ret_cut.shape[0])
+    df_ret_cut['Date'] = timedfret
+    df_eco_ret_cut['Date']= timedeco
+    df_ret_cut = df_ret_cut.set_index("Date")
+    df_eco_ret_cut = df_eco_ret_cut.set_index("Date")
+
+    arma_ret = rf.arma_sorter(df_ret_cut, str.upper(f), 
+                              maxlag = 3,
+                              criterion = "BIC")
+    arma_eco = rf.arma_sorter(df_eco_ret_cut, "M", 
+                              maxlag = 3,
+                              criterion = "BIC")
+    
+    arma_ret.to_excel("test.xlsx")
+    """
+    """
+    rp.resid_graph(arma_ret,f, nlg = 20)
+
+    rp.resid_graph(arma_eco, "Monthly", nlg = 20)
+    """
     
     """
     rf.jungbox_test(rf.test(df_log_cut),10)

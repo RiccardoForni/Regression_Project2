@@ -137,6 +137,22 @@ class Plotting:
                 plt.close("all")
 
     
+    def resid_graph(self,df,f,nlg):
+        
+        for i in df.index:
+            
+            smp.plot_acf(df.loc[i, "Model"].resid, lags = nlg)
+            plt . title ('Residual- '+f+' - ACF - '+ "var")
+            plt.savefig(folder_definer(f+"__Correlation_ACF_resid_arma")+"/"+i+"_Correlation_ACF.png", dpi = 300)
+                    
+        
+            smp.plot_pacf(df.loc[i, "Model"].resid, lags = nlg)
+            plt . title ('Log prices - '+f+' - PACF ')
+            plt.savefig(folder_definer(f+"__Correlation_PACF_resid_arma")+"/"+i+"_Correlation_PACF.png", dpi = 300)
+            plt.close("all")
+        
+
+    
     """
     
     ############################## OLD PROJECT #####################

@@ -2,6 +2,7 @@ import statsmodels . api as sm
 import statsmodels.stats.diagnostic as smd
 import statsmodels.stats.stattools as smt
 import statsmodels.tsa.stattools as smtime
+import statsmodels.tsa.arima.model as tsa
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.stats.diagnostic import acorr_ljungbox
 import pandas as pd
@@ -63,6 +64,68 @@ def jacque(stock):
     for e in stock.columns:
             ret_df.loc[e:]  = list(sp . stats . jarque_bera(stock[e]))
     return ret_df
+
+
+def arma_sorter(df, f, maxlag = 2, criterion = "BIC"):
+    """
+    Creating a dataframe in which we will save the best model for each asset
+    or economic indicator
+    """
+    
+    lcol = ["AR", "MA","BIC","AIC", "Model"]
+    
+    result_df = pd.DataFrame(index = df.columns, columns = lcol)
+    print(df)
+    for i in df.columns:
+        print(i)
+        """
+        Creating a dataframe in which we will store the order of the model,
+        the BIC value and the object containing all the results for further use.
+        """
+        
+        df_2 = pd.DataFrame(columns = lcol)
+        
+        
+        """
+        Estimating each possible combination of the AR and MA parameters from zero to six
+        """
+        
+        for i in range(maxlag + 1):
+            for j in range(maxlag + 1):
+                
+                if i == 0 and j == 0:
+                    
+                    continue
+                
+                """
+                Estimating the model
+                """
+                
+                mod = tsa.ARIMA(df.iloc[:,i], order= (i,0,j),freq=f)
+                
+                res = mod.fit()
+                l = []
+                
+                spec = res.model_orders
+                
+                l.append(spec["ar"])
+                l.append(spec["ma"])
+                l.append(res.bic)
+                l.append(res.aic)
+                l.append(res)
+                
+                df_2.loc[len(df_2.index)] = l
+                
+        
+        df_2 = df_2.sort_values(criterion)
+        
+        
+        result_df.loc[i, :] = df_2.iloc[0,:]            
+                        
+    
+    return result_df
+
+
 
 
 
