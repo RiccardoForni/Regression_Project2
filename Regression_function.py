@@ -69,7 +69,7 @@ def jacque(stock):
 
 def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
     
-    lcol = ["AR", "MA","BIC","AIC","resid","Model"] if n_steps == 0 else ["AR", "MA","BIC","AIC","resid","fcast","fvalue","finterval","Model"]
+    lcol = ["AR", "MA","BIC","AIC","params","resid","Model"] if n_steps == 0 else ["AR", "MA","BIC","AIC","params","resid","fcast","fvalue","finterval","Model"]
     
     
     result_df = pd.DataFrame(index = df.columns, columns = lcol)
@@ -114,6 +114,7 @@ def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
                 l.append(spec["ma"])
                 l.append(res.bic)
                 l.append(res.aic)
+                l.append(res.params)
                 l.append(res.resid)
                 if n_steps > 0:
                    l.append(forecast_result)
