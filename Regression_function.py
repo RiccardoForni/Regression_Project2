@@ -8,6 +8,9 @@ from statsmodels.stats.diagnostic import acorr_ljungbox
 import pandas as pd
 import numpy as np
 import scipy as sp
+import warnings
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
+warnings.simplefilter('ignore', ConvergenceWarning)
 
 import statsmodels.api as sm
 
@@ -41,13 +44,11 @@ def table(df):
 
 
 def jungbox_test(resid,maxlag):
-    lcol = ['lb_stat ', 'lb_pvalue ', 'bp_stat ', 'bp_pvalue']
-    ret_df=pd.DataFrame(index = resid.keys(), columns = lcol)
-    for e in resid.keys():
-        temp_df= acorr_ljungbox(resid[e].resid ,maxlag)
-        for i in temp_df.columns:
-            ret_df.loc[e,i] = [temp_df[i]]
-    print(ret_df)
+    lcol = ['lb_stat ', 'lb_pvalue ']
+    ret_df=pd.DataFrame(index = resid.index, columns = lcol)
+    for e in resid.index:
+        temp_df= acorr_ljungbox(resid[e].T ,maxlag)
+        ret_df.loc[e,:] = [temp_df]
     return ret_df
 
 def adf_test(stocks,maxlag=21):
@@ -66,24 +67,15 @@ def jacque(stock):
     return ret_df
 
 
-def arma_sorter(df, f, maxlag = 2, criterion = "BIC"):
-    """
-    Creating a dataframe in which we will save the best model for each asset
-    or economic indicator
-    """
+def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
     
-    lcol = ["AR", "MA","BIC","AIC", "Model"]
+    lcol = ["AR", "MA","BIC","AIC","resid","Model"] if n_steps == 0 else ["AR", "MA","BIC","AIC","resid","fcast","fvalue","finterval","Model"]
+    
     
     result_df = pd.DataFrame(index = df.columns, columns = lcol)
-    print(df)
-    for i in df.columns:
-        print(i)
-        """
-        Creating a dataframe in which we will store the order of the model,
-        the BIC value and the object containing all the results for further use.
-        """
+    for z in df.columns:
         
-        df_2 = pd.DataFrame(columns = lcol)
+        sorter = pd.DataFrame(columns = lcol)
         
         
         """
@@ -97,13 +89,23 @@ def arma_sorter(df, f, maxlag = 2, criterion = "BIC"):
                     
                     continue
                 
-                """
-                Estimating the model
-                """
-                
-                mod = tsa.ARIMA(df.iloc[:,i], order= (i,0,j),freq=f)
+                dates = pd.date_range('2013-9-30', periods=len(df[z]), freq=str.upper(f))
+                # add the dates and the data to a new dataframe
+                ts = pd.DataFrame({'dates': dates, 'data': df[z]})
+                # set the dataframe index to be the dates column
+                ts = ts.set_index('dates')
+                ts.index = pd.DatetimeIndex(ts.index).to_period(str.upper(f))
+
+                mod = tsa.ARIMA(ts, order= (i,0,j),freq=f, trend='n', enforce_stationarity=False, enforce_invertibility=False)
                 
                 res = mod.fit()
+                if n_steps > 0:
+                    # Perform one-step-ahead forecast
+                    forecast_result = res.get_forecast(steps=n_steps)
+                    forecast_summ = forecast_result.summary_frame()
+                    # Extract forecast values and confidence intervals
+                    forecast_values = forecast_result.predicted_mean
+                    confidence_intervals = forecast_result.conf_int()
                 l = []
                 
                 spec = res.model_orders
@@ -112,16 +114,20 @@ def arma_sorter(df, f, maxlag = 2, criterion = "BIC"):
                 l.append(spec["ma"])
                 l.append(res.bic)
                 l.append(res.aic)
+                l.append(res.resid)
+                if n_steps > 0:
+                   l.append(forecast_result)
+                   l.append(forecast_values)
+                   l.append(confidence_intervals)
+
                 l.append(res)
                 
-                df_2.loc[len(df_2.index)] = l
-                
+                sorter.loc[len(sorter.index)] = l
+                    
+        sorter = sorter.sort_values(criterion)
         
-        df_2 = df_2.sort_values(criterion)
         
-        
-        result_df.loc[i, :] = df_2.iloc[0,:]            
-                        
+        result_df.loc[z, :] = sorter.iloc[0,:]            
     
     return result_df
 

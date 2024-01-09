@@ -104,7 +104,7 @@ class Plotting:
                 ax1 . set_xlabel ("")
                 plt.savefig(folder_definer(frequency+"_Prob")+"/"+i+"_LogProb .png", dpi = 300)
                 plt.close()
-
+    @controlla_permesso
     def histo_plot(self,stock,frequency,bins = None):
         if bins is None: 
             if frequency == "d":
@@ -118,7 +118,7 @@ class Plotting:
                 ax1 . set_xlabel ("")
                 plt.savefig(folder_definer(frequency+"_histo")+"/"+i+"_Loghisto .png", dpi = 300)
                 plt.close()
-   
+    @controlla_permesso
     def histo_plot2(self,stock,stock2,frequency,bins = None):
         if bins is None: 
             if frequency == "d":
@@ -141,12 +141,12 @@ class Plotting:
         
         for i in df.index:
             
-            smp.plot_acf(df.loc[i, "Model"].resid, lags = nlg)
+            smp.plot_acf(df.loc[i, "resid"], lags = nlg)
             plt . title ('Residual- '+f+' - ACF - '+ "var")
             plt.savefig(folder_definer(f+"__Correlation_ACF_resid_arma")+"/"+i+"_Correlation_ACF.png", dpi = 300)
                     
         
-            smp.plot_pacf(df.loc[i, "Model"].resid, lags = nlg)
+            smp.plot_pacf(df.loc[i, "resid"], lags = nlg)
             plt . title ('Log prices - '+f+' - PACF ')
             plt.savefig(folder_definer(f+"__Correlation_PACF_resid_arma")+"/"+i+"_Correlation_PACF.png", dpi = 300)
             plt.close("all")
@@ -167,7 +167,7 @@ class Plotting:
             mean = P.loc['Mean', variable]
         except:
             mean= 0.0
-        if obj is '':
+        if obj == '':
             obj = variable
         P['stock_names'] = P.index
 
