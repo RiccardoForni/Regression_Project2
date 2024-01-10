@@ -151,8 +151,32 @@ class Plotting:
             plt.savefig(folder_definer(f+"__Correlation_PACF_resid_arma")+"/"+i+"_Correlation_PACF.png", dpi = 300)
             plt.close("all")
         
+    def plot_forecast(self,df, df_ret, time,f,name):
+        x=  pd.date_range(time, periods=len(df_ret), freq=str.upper(f)) 
+        # add the dates and the data to a new dataframe
+        df_ret = pd.DataFrame({'dates': x, 'data': df_ret})
+        # set the dataframe index to be the dates column
+        df_ret = df_ret.set_index('dates')
 
+        # Plot each line with a label
+        plt.plot(x, df["Prediction"], label="Prediction")
+        plt.plot(x, df["Lower_Bound"], label="Lower_Bound")
+        plt.plot(x, df["Upper_Bound"], label="Upper_Bound")
+        plt.plot(x, df_ret, label="Actual Data")
+
+        plt.savefig(folder_definer(f+"_Forecast")+"/"+name+"_forecast.png", dpi = 300)
+        plt.close("all")
     
+
+    def plot_ljung_box(self,df, f,check):
+            
+        for i in df.index:
+        
+            Plotting(True).plotbar(df.loc[i,:], f,diff=str(check)+i+"jingle_box")
+
+
+
+
     """
     
     ############################## OLD PROJECT #####################

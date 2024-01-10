@@ -8,6 +8,7 @@ from statsmodels.stats.diagnostic import acorr_ljungbox
 import pandas as pd
 import numpy as np
 import scipy as sp
+
 import warnings
 from statsmodels.tools.sm_exceptions import ConvergenceWarning
 warnings.simplefilter('ignore', ConvergenceWarning)
@@ -44,11 +45,11 @@ def table(df):
 
 
 def jungbox_test(resid,maxlag):
-    lcol = ['lb_stat ', 'lb_pvalue ']
+    lcol = ['lb_stat', 'lb_pvalue']
     ret_df=pd.DataFrame(index = resid.index, columns = lcol)
     for e in resid.index:
         temp_df= acorr_ljungbox(resid[e].T ,maxlag)
-        ret_df.loc[e,:] = [temp_df]
+        ret_df.loc[e,:] = temp_df['lb_pvalue']
     return ret_df
 
 def adf_test(stocks,maxlag=21):
@@ -67,11 +68,9 @@ def jacque(stock):
     return ret_df
 
 
-def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
+def arma(df, f,time,criterion,maxlag = 2 ):
     
-    lcol = ["AR", "MA","BIC","AIC","params","resid","Model"] if n_steps == 0 else ["AR", "MA","BIC","AIC","params","resid","fcast","fvalue","finterval","Model"]
-    
-    
+    lcol = ["AR", "MA","BIC","AIC","params","resid","table","Model"] 
     result_df = pd.DataFrame(index = df.columns, columns = lcol)
     for z in df.columns:
         
@@ -89,7 +88,8 @@ def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
                     
                     continue
                 
-                dates = pd.date_range('2013-9-30', periods=len(df[z]), freq=str.upper(f))
+                dates = pd.date_range(time, periods=len(df[z]), freq=str.upper(f))
+               
                 # add the dates and the data to a new dataframe
                 ts = pd.DataFrame({'dates': dates, 'data': df[z]})
                 # set the dataframe index to be the dates column
@@ -99,16 +99,12 @@ def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
                 mod = tsa.ARIMA(ts, order= (i,0,j),freq=f, trend='n', enforce_stationarity=False, enforce_invertibility=False)
                 
                 res = mod.fit()
-                if n_steps > 0:
-                    # Perform one-step-ahead forecast
-                    forecast_result = res.get_forecast(steps=n_steps)
-                    forecast_summ = forecast_result.summary_frame()
-                    # Extract forecast values and confidence intervals
-                    forecast_values = forecast_result.predicted_mean
-                    confidence_intervals = forecast_result.conf_int()
+                
+                    
                 l = []
                 
                 spec = res.model_orders
+
                 
                 l.append(spec["ar"])
                 l.append(spec["ma"])
@@ -116,21 +112,63 @@ def arma(df, f, maxlag = 2, criterion = "BIC", n_steps = 0):
                 l.append(res.aic)
                 l.append(res.params)
                 l.append(res.resid)
-                if n_steps > 0:
-                   l.append(forecast_result)
-                   l.append(forecast_values)
-                   l.append(confidence_intervals)
-
+                l.append(res.summary().tables[1])
                 l.append(res)
                 
                 sorter.loc[len(sorter.index)] = l
                     
         sorter = sorter.sort_values(criterion)
-        
-        
+
         result_df.loc[z, :] = sorter.iloc[0,:]            
     
     return result_df
+
+
+
+       
+def forecast(df_ret, arima_res, df_cut,f,time, n_f,select=False):
+    
+    
+    
+    len_param = len(df_cut.index) if select is False else n_f
+
+
+    
+    result_df = pd.DataFrame(index = df_ret.index[len_param:], 
+                                columns = ["Prediction", "Lower_Bound",
+                                        "Upper_Bound"])              
+    
+            
+    dates = pd.date_range(time, periods=len(df_ret), freq=str.upper(f)) 
+    # add the dates and the data to a new dataframe
+    ts = pd.DataFrame({'dates': dates, 'data': df_ret})
+    # set the dataframe index to be the dates column
+    ts = ts.set_index('dates')
+    ts.index = pd.DatetimeIndex(ts.index).to_period(str.upper(f))
+
+
+    
+    for i in range(n_f):
+        forecasts = []
+        
+        
+        mod = tsa.ARIMA(endog = ts.iloc[:len_param +i],order= (arima_res["AR"],0,arima_res["MA"]))
+            
+        
+        res = mod.fit()
+        
+        fcast = res. get_forecast ( steps = 1)
+        
+        forecasts.append(fcast.predicted_mean.iloc[0])
+        ci = fcast.conf_int()
+        forecasts.append(ci.iloc[0, 0])
+        forecasts.append(ci.iloc[0, 1])
+        
+        result_df.iloc[i,:] = forecasts
+            
+
+    result_df["true_value"] = df_ret
+    return result_df , df_ret.index[-n_f:]
 
 
 
