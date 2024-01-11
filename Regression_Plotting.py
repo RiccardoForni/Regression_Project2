@@ -170,6 +170,32 @@ class Plotting:
         plt.savefig(folder_definer(f+"_Forecast")+"/"+name+"_forecast.png", dpi = 300)
         plt.close("all")
     
+    def plot_for_random(self,frw,rw,df,f,time):
+
+        x=  pd.date_range(time, periods=len(rw), freq=str.upper(f))
+        # add the dates and the data to a new dataframe
+        rw = pd.DataFrame({'dates': x, 'data': rw})
+        # set the dataframe index to be the dates column
+        rw = rw.set_index('dates')
+
+        frw = pd.DataFrame({'dates': x, 'data': frw})
+        # set the dataframe index to be the dates column
+        frw = frw.set_index('dates')
+
+        df = pd.DataFrame({'dates': x, 'data': df})
+        # set the dataframe index to be the dates column
+        df = df.set_index('dates')
+
+        # Plot each line with a label
+
+        plt.plot(x, df["data"]["Prediction"], label="Prediction")
+        plt.plot(x, df["data"]["Lower_Bound"], label="Lower_Bound")
+        plt.plot(x, df["data"]["Upper_Bound"], label="Upper_Bound")
+        plt.plot(x, df["data"]["true_value"], label="Actual Data")
+        plt.plot(x, frw["data"]["Prediction"], label="Random Walk Forecast")
+        plt.plot(x, rw["data"], label="Random Walk value")
+        plt.show()
+        plt.close("all")
 
     def plot_ljung_box(self,df, f,check):
             

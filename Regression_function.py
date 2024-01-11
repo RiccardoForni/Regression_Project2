@@ -172,6 +172,25 @@ def forecast(df_ret, arima_res, df_cut,f,time, n_f,select=False):
     result_df["true_value"] = df_ret
     return result_df , df_ret.index[-n_f:]
 
+def create_rw(df,time,f,n):
+    random_walk = np.cumsum(np.random.normal(size=len(df.dropna())))
+    diff_random_walk = np.diff(random_walk)
+    
+    arma_df = pd.DataFrame(columns =  ["AR", "MA"])
+    arma_df["AR"]=1
+    arma_df["MA"]=0
+
+    dates = pd.date_range(time, periods=len(random_walk[1:]), freq=str.upper(f)) 
+
+    # add the dates and the data to a new dataframe
+    RWa = pd.DataFrame({'dates': dates,'Random Walk': random_walk[1:], 'Differenced Random Walk': diff_random_walk})
+    # set the dataframe index to be the dates column
+    RWa = RWa.set_index('dates')
+    RWa.index = pd.DatetimeIndex(RWa.index).to_period(str.upper(f))
+
+    foreRwa,Rwaindex = forecast(RWa['Random Walk'], arma_df, RWa['Random Walk'], f,time,n_f = n,select=True)
+
+    return foreRwa,RWa
 
 
 
