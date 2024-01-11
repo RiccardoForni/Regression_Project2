@@ -22,7 +22,7 @@ def union_sheets_value(Dataframe,name_xlsx,frequency = ""):
 rp = rz.Plotting(False)
 Frequency = ("m","d")
 #Take static data
-Economic_Data,list_name,dates = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
+Economic_Data,list_name,datess = union_sheets_value(pd . read_excel('Economy_Data.xlsx',sheet_name=None),'Economy_Data.xlsx')
 Interest_Rate = pd . read_excel ('Gmarket.xlsx', 'Bund')
 Stocks = pd . read_excel ('Stocks.xlsx', sheet_name=None)
 
@@ -184,8 +184,6 @@ for f in Frequency:
 
     random_walk = np.cumsum(np.random.normal(size=len(temp_stock.dropna())))
     diff_random_walk = np.diff(random_walk)
-    print(len(random_walk))
-    print(len(diff_random_walk))
     
     arma_df = pd.DataFrame(columns =  ["AR", "MA"])
     arma_df["AR"]=1
@@ -200,70 +198,67 @@ for f in Frequency:
     RWa.index = pd.DatetimeIndex(RWa.index).to_period(str.upper(f))
 
     foreRwa,Rwaindex = rf.forecast(RWa['Random Walk'], arma_df, RWa['Random Walk'], f,time_stock,n_f = n,select=True)
+
+
+    if f=="d":
         
+        n = int(np.round(df_equity_ret_squared.dropna().shape[0] * 0.05) ) if f == "d" else 24
+        nlag = 22 if f == "d" else 12
+        #Cuts
+        time_stock = time_series.tail(n).values[0]
 
+        df_equity_ret_squared_cut = df_equity_ret_squared.dropna().iloc[:-n,:]
+
+
+        adf_equity_ret_squared_cut = rf.adf_test(df_equity_ret_squared_cut,nlag)
+
+
+        adf_equity_ret_squared_cut.to_excel(rz.folder_definer(str(4)+"excel")+"adf_equity_ret_squared_cut.xlsx")
+
+
+        squared_stat,squared_non_stat=rf.stationarity_and_not_stationary(adf_equity_ret_squared_cut)
+
+
+        for i in adf_equity_ret_squared_cut.columns:
+            rp.plotbar(adf_equity_ret_squared_cut[i],f,str(4)+"squared_ret") 
+
+
+        df_equity_ret_squared_cut = df_equity_ret_squared_cut.loc[:,squared_non_stat]
+
+        for i in squared_stat:
+            df_equity_ret_squared_cut[i] = df_equity_ret_squared.iloc[:-n,:][i]
+
+
+        adf_equity_ret_squared_cut=rf.adf_test(df_equity_ret_squared_cut.dropna(),nlag)
+        adf_equity_ret_squared_cut.to_excel(rz.folder_definer(str(4)+"excel_first_diff")+"adf_equity_ret_squared_cut.xlsx")
+
+        for i in adf_equity_ret_squared_cut.columns:
+            rp.plotbar(adf_equity_ret_squared_cut[i],f,str(4)+"adf_equity_ret_squared_cut")
+        rp.histo_plot2(df_log_cut,adf_equity_ret_squared_cut,f)
+
+        arma_ret_squared = rf.arma(df_equity_ret_squared_cut.dropna(how="all"), str.upper("d"), time_stock,
+                            maxlag = 3,
+                            criterion = "AIC")
+
+        arma_ret_squared.to_excel(rz.folder_definer(str(4)+"excel_arma")+"arma_ret_squared"+f+".xlsx")
+        rp.resid_graph(arma_ret_squared,f+"_squared_"+str(4), nlg = nnlg)
+        rp.plot_correlation(arma_ret_squared["resid"], 20, str(4)+"arma","arma_ret_squared")
+
+        j_ret_squared=rf.jungbox_test(arma_ret_squared["resid"],10)
+        j_ret_squared.to_excel(rz.folder_definer(str(4)+"excel_jbox")+"j_ret_squared"+f+".xlsx")
+
+        for i in j_ret_squared.index:
+            rp.plotbar(j_ret.loc[i,:],f,str(4)+"j_ret") 
 
 
         
+        df_equity_ret_squared_cut = df_equity_ret_squared.dropna().tail(n)
+        df_equity_ret_squared_cut= df_equity_ret_squared_cut[df_equity_ret_squared_cut[1:] != 0]
+        for i in df_equity_ret_squared.columns:
 
-
-
-
-
-"""
-POINT SEVEN
-"""
-
-
-
-df_equity_ret_squared_cut = df_equity_ret_squared.dropna().iloc[:-n,:]
-
-adf_equity_ret_squared_cut = rf.adf_test(df_equity_ret_squared_cut,nlag)
-
-
-adf_equity_ret_squared_cut.to_excel(rz.folder_definer(str(4)+"excel")+"adf_equity_ret_squared_cut.xlsx")
-
-
-squared_stat,squared_non_stat=rf.stationarity_and_not_stationary(adf_equity_ret_squared_cut)
-
-
-for i in adf_equity_ret_squared_cut.columns:
-    rp.plotbar(adf_equity_ret_squared_cut[i],f,str(4)+"squared_ret") 
-
-
-df_equity_ret_squared_cut = df_equity_ret_squared_cut.loc[:,squared_non_stat]
-
-for i in squared_stat:
-    df_equity_ret_squared_cut[i] = df_log_cut.iloc[:-n,:][i]
-
-
-adf_equity_ret_squared_cut=rf.adf_test(df_equity_ret_squared_cut.dropna(),nlag)
-adf_equity_ret_squared_cut.to_excel(rz.folder_definer(str(4)+"excel_first_diff")+"adf_equity_ret_squared_cut.xlsx")
-
-for i in adf_equity_ret_squared_cut.columns:
-    rp.plotbar(adf_equity_ret_squared_cut[i],f,str(4)+"adf_equity_ret_squared_cut")
-rp.histo_plot2(df_log_cut,adf_equity_ret_squared_cut,f)
-
-arma_ret_squared = rf.arma(df_equity_ret_squared_cut.dropna(how="all"), str.upper("d"), time_stock,
-                    maxlag = 3,
-                    criterion = "AIC")
-
-arma_ret_squared.to_excel(rz.folder_definer(str(4)+"excel_arma")+"arma_ret_squared"+f+".xlsx")
-rp.resid_graph(arma_ret_squared,f+"_squared_"+str(4), nlg = nnlg)
-rp.plot_correlation(arma_ret_squared["resid"], 20, str(4)+"arma","arma_ret_squared")
-
-j_ret_squared=rf.jungbox_test(arma_ret_squared["resid"],10)
-j_ret_squared.to_excel(rz.folder_definer(str(4)+"excel_jbox")+"j_ret_squared"+f+".xlsx")
-
-for i in j_ret_squared.index:
-    rp.plotbar(j_ret.loc[i,:],f,str(4)+"j_ret") 
-
-df_equity_ret_squared_cut = df_equity_ret_squared.dropna().tail(n)
-for i in df_equity_ret_squared.columns:
-
-        forecast,index = rf.forecast_3(df_equity_ret_squared[i], arma_ret_squared.loc[i:], df_equity_ret_squared_cut[i], f,time_stock,n_f = n)
-            
-        rp.plot_forecast(forecast.dropna(),df_equity_ret_squared_cut[i],time_stock,f,i+"squared")                   
+                forecast,index = rf.forecast(df_equity_ret_squared[i], arma_ret_squared.loc[i], df_equity_ret_squared_cut[i], f,time_stock,n_f = n)
+                    
+                rp.plot_forecast(forecast.dropna(),df_equity_ret_squared_cut[i],time_stock,f,i+"squared")                   
 
 
 
@@ -280,7 +275,7 @@ table_eco.to_excel("table_eco.xlsx")
 
 df_eco_cut = Economic_Data.iloc[:-24,:]
 df_eco_ret_cut = df_eco_ret.dropna().iloc[:-24,:]
-time_eco = dates.values[0]
+time_eco = time_series.values[0]
 nlag= 12
 nnlg = 20
 
@@ -330,12 +325,12 @@ rp.plot_ljung_box(j_eco, f,str(4))
 
 df_eco_cut = Economic_Data.tail(24)
 df_eco_ret_cut = df_eco_ret.dropna().tail(24)
-time_eco = dates.tail(24).values[0]
+time_eco = time_series.tail(24).values[0]
 
-
+df_eco_ret_cut= df_eco_cut[df_eco_cut[1:] != 0]
 for i in df_eco_ret.columns:
 
-    forecast,index = rf.forecast_3(df_eco_ret.dropna()[i], arma_ret.loc[i:], df_eco_ret_cut[i], f,time_stock,
-                            n_f = n)
-    rp.plot_forecast(forecast.dropna(),df_eco_ret[i],time_stock,f,i+"eco")  
+    forecast,index = rf.forecast(df_eco_ret.dropna()[i], arma_eco.loc[i], df_eco_ret_cut[i], f,time_eco,
+                            n_f = 24)
+    rp.plot_forecast(forecast.dropna(),df_eco_ret[i],time_eco,f,i+"eco")  
 

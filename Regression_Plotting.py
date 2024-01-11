@@ -153,6 +153,9 @@ class Plotting:
         
     def plot_forecast(self,df, df_ret, time,f,name):
         x=  pd.date_range(time, periods=len(df_ret), freq=str.upper(f)) 
+      
+        if len(x)>len(df):
+            return None
         # add the dates and the data to a new dataframe
         df_ret = pd.DataFrame({'dates': x, 'data': df_ret})
         # set the dataframe index to be the dates column

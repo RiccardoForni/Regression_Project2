@@ -17,10 +17,14 @@ import statsmodels.api as sm
 
 def stationarity_and_not_stationary(df):
 
-    stat = non_stat= []
+    stat = []
+    non_stat= []
     for i,j in zip(df['pvalue'], df.index):
         
-        stat.append(j)  if i >= 0.05 else non_stat.append(j)
+        if i > float(0.05):
+            stat.append(j)  
+        else:
+            non_stat.append(j)
             
     return stat,non_stat
 
@@ -137,8 +141,7 @@ def forecast(df_ret, arima_res, df_cut,f,time, n_f,select=False):
     result_df = pd.DataFrame(index = df_ret.index[len_param:], 
                                 columns = ["Prediction", "Lower_Bound",
                                         "Upper_Bound"])              
-    
-            
+
     dates = pd.date_range(time, periods=len(df_ret), freq=str.upper(f)) 
     # add the dates and the data to a new dataframe
     ts = pd.DataFrame({'dates': dates, 'data': df_ret})
@@ -163,7 +166,6 @@ def forecast(df_ret, arima_res, df_cut,f,time, n_f,select=False):
         ci = fcast.conf_int()
         forecasts.append(ci.iloc[0, 0])
         forecasts.append(ci.iloc[0, 1])
-        
         result_df.iloc[i,:] = forecasts
             
 
