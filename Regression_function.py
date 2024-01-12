@@ -53,7 +53,8 @@ def jungbox_test(resid,maxlag):
     ret_df=pd.DataFrame(index = resid.index, columns = lcol)
     for e in resid.index:
         temp_df= acorr_ljungbox(resid[e].T ,maxlag)
-        ret_df.loc[e,:] = temp_df['lb_pvalue']
+        ret_df.loc[e,"lb_stat"] = temp_df['lb_stat']
+        ret_df.loc[e,"lb_pvalue"] = temp_df['lb_pvalue']
     return ret_df
 
 def adf_test(stocks,maxlag=21):
@@ -188,7 +189,7 @@ def create_rw(df,time,f,n):
     RWa = RWa.set_index('dates')
     RWa.index = pd.DatetimeIndex(RWa.index).to_period(str.upper(f))
 
-    foreRwa,Rwaindex = forecast(RWa['Random Walk'], arma_df, RWa['Random Walk'], f,time,n_f = n,select=True)
+    foreRwa,Rwaindex = forecast(RWa['Differenced Random Walk'], arma_df, RWa['Differenced Random Walk'], f,time,n_f = n,select=True)
 
     return foreRwa,RWa
 

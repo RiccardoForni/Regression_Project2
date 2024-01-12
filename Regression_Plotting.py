@@ -166,7 +166,6 @@ class Plotting:
         plt.plot(x, df["Lower_Bound"], label="Lower_Bound")
         plt.plot(x, df["Upper_Bound"], label="Upper_Bound")
         plt.plot(x, df_ret, label="Actual Data")
-
         plt.savefig(folder_definer(f+"_Forecast")+"/"+name+"_forecast.png", dpi = 300)
         plt.close("all")
     

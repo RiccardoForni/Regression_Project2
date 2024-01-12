@@ -174,6 +174,7 @@ for f in Frequency:
     df_level_non_stat = temp_stock.dropna().loc[:,ret_non_stat]
     df_log_non_stat_cut = df_equity_L.dropna().tail(n).loc[:,ret_non_stat]
     df_level_non_stat_cut = temp_stock.dropna().tail(n).loc[:,ret_non_stat]
+    
     lo=[]
     ll=[]
     for i in df_equity_ret.columns:
@@ -186,10 +187,12 @@ for f in Frequency:
             values_to_check2 =  np.array(forecast["Prediction"].dropna().values)  
             values_to_check3 = values_to_check+values_to_check2
             df_log_non_stat_cut[i] = values_to_check3
+            index = len(df_log_non_stat[i])-n
             y=0
             for z in df_log_non_stat_cut[i].values:
-                df_log_non_stat.loc[-n+y:,i]=z
+                df_log_non_stat.loc[index+y:,i]=z
                 y=y+1
+            df_log_non_stat[i]= df_log_non_stat[i]-df_log_non_stat[i].shift(1)
             forecast1,index1 = rf.forecast(df_log_non_stat.dropna()[i], arma_ret.loc[i], df_log_non_stat_cut[i], f,time_stock,n_f = n)
             lo.append(forecast1)
         if i in df_level_non_stat.columns:
@@ -197,24 +200,31 @@ for f in Frequency:
             values_to_check2 =  np.array(forecast["Prediction"].dropna().values)  
             values_to_check3 = values_to_check+values_to_check2   
             df_level_non_stat_cut[i] = values_to_check3
-                 
+            index = len(df_level_non_stat[i])-n
             y=0
             for z in df_level_non_stat_cut[i].values:
-                df_level_non_stat.loc[-n+y:,i]=z
+                df_level_non_stat.loc[index+y,i]=z
                 y=y+1
+            df_level_non_stat[i]= df_level_non_stat[i]-df_level_non_stat[i].shift(1)
             forecast2,index2 = rf.forecast(df_level_non_stat.dropna()[i], arma_ret.loc[i], df_level_non_stat_cut[i], f,time_stock,n_f = n)
             ll.append(forecast2)
     
     for i,y in zip(lo,df_log_non_stat_cut.columns):
 
         foreWa,RWa= rf.create_rw(df_log_non_stat[y],time_stock,f,n)
-        df_log_non_stat.to_excel(rz.folder_definer("rwlog")+y+"log.xlsx")
-        foreWa.to_excel(rz.folder_definer("rwlog")+y+"rw.xlsx")
+        print(type(i))
+        RWa.to_excel(rz.folder_definer("rwlog")+str(y)+"rw"+f+".xlsx")
+        i.to_excel(rz.folder_definer("rwlog")+str(y)+"forlog"+f+".xlsx")
+        df_log_non_stat_cut.to_excel(rz.folder_definer("rwlog")+y+"log.xlsx")
+        foreWa.to_excel(rz.folder_definer("rwlog")+y+"forerw.xlsx")
     for i,y in zip(ll,df_level_non_stat_cut.columns):
         
         foreWa,RWa= rf.create_rw(df_level_non_stat[y],time_stock,f,n)
-        df_level_non_stat.to_excel(rz.folder_definer("rwlevel")+y+"level.xlsx")
-        foreWa.to_excel(rz.folder_definer("rwlevel")+y+"rwlevel.xlsx")
+        print(type(i))
+        RWa.to_excel(rz.folder_definer("rwlevel")+str(y)+"rw"+f+".xlsx")
+        i.to_excel(rz.folder_definer("rwlevel")+str(y)+"forlevel"+f+".xlsx")
+        df_level_non_stat_cut.to_excel(rz.folder_definer("rwlevel")+y+"level.xlsx")
+        foreWa.to_excel(rz.folder_definer("rwlevel")+y+"forerwlevel.xlsx")
 
     print("stop")
     if f=="d":
@@ -354,25 +364,28 @@ for i in df_eco_ret.columns:
     forecast,index = rf.forecast(df_eco_ret.dropna()[i], arma_eco.loc[i], df_eco_ret_cut[i], f,time_eco,
                             n_f = 24)
     rp.plot_forecast(forecast.dropna(),df_eco_ret[i],time_eco,f,i+"eco")  
-    if i in df_level_non_stat.columns:
-            values_to_check =  np.array(df_level_non_stat_cut[i].values)      
+    if i in df_log_non_stat.columns:
+            values_to_check =  np.array(df_log_non_stat[i].values)      
             values_to_check2 =  np.array(forecast["Prediction"].dropna().values)  
             values_to_check3 = values_to_check+values_to_check2   
-            df_level_non_stat_cut[i] = values_to_check3       
+            df_log_non_stat[i] = values_to_check3
+            index = len(df_log_non_stat[i])-n   
             y=0
-            for z in df_level_non_stat_cut[i].values:
-                df_level_non_stat.loc[-n+y:,i]=z
+            for z in df_log_non_stat[i].values:
+                df_level_non_stat.loc[index+y:,i]=z
                 y=y+1
+            df_log_non_stat[i]= df_log_non_stat[i]-df_log_non_stat[i].shift(1)
             forecast1,index1 = rf.forecast(df_log_non_stat.dropna()[i], arma_ret.loc[i], df_log_non_stat_cut[i], f,time_stock,n_f = n)
             lo.append(forecast1)      
     if i in df_level_non_stat.columns:
             values_to_check =  np.array(df_level_non_stat_cut[i].values)      
             values_to_check2 =  np.array(forecast["Prediction"].dropna().values)  
             values_to_check3 = values_to_check+values_to_check2   
-            df_level_non_stat_cut[i] = values_to_check3       
+            df_level_non_stat_cut[i] = values_to_check3
+            index = len(df_level_non_stat[i])-n       
             y=0
             for z in df_level_non_stat_cut[i].values:
-                df_level_non_stat.loc[-n+y:,i]=z
+                df_level_non_stat.loc[index+y:,i]=z
                 y=y+1
             forecast2,index2 = rf.forecast(df_level_non_stat.dropna()[i], arma_ret.loc[i], df_log_cut[i], f,time_stock,n_f = n)
             ll.append(forecast2)
@@ -380,10 +393,10 @@ for i in df_eco_ret.columns:
 for i,y in zip(lo,df_log_non_stat_cut.columns):
 
         foreWa,RWa= rf.create_rw(df_log_non_stat[y],time_stock,f,n)
-        df_log_non_stat.to_excel(rz.folder_definer("eco_ret")+y+"log.xlsx")
+        df_log_non_stat_cut.to_excel(rz.folder_definer("eco_ret")+y+"log.xlsx")
         foreWa.to_excel(rz.folder_definer("eco_ret")+y+"rw.xlsx")
 for i,y in zip(ll,df_level_non_stat_cut.columns):
         
         foreWa,RWa= rf.create_rw(df_level_non_stat[y],time_stock,f,n)
-        df_level_non_stat.to_excel(rz.folder_definer("eco")+y+"level.xlsx")
+        df_level_non_stat_cut.to_excel(rz.folder_definer("eco")+y+"level.xlsx")
         foreWa.to_excel(rz.folder_definer("eco")+y+"rwlevel.xlsx")
