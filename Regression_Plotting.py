@@ -49,11 +49,11 @@ class Plotting:
     def plot_correlation(self,Stocks,nlg,f,diff):    
         for i in Stocks.columns:
             smp.plot_acf(Stocks.loc[:,i], lags = nlg)
-            plt . title ('Log prices - '+f+' - ACF ')
+            plt . title (diff+' - '+f+' - ACF ')
             plt.savefig(folder_definer(f+"_Correlation_ACF")+"/"+i+"_Correlation_ACF.png", dpi = 300)
 
             smp.plot_pacf(Stocks.loc[:,i], lags = nlg)
-            plt . title ('Log prices - '+f+' - PACF ')
+            plt . title (diff+'- '+f+' - PACF ')
             plt.savefig(folder_definer(f+"__Correlation_PACF")+"/"+i+"-"+diff+"_Correlation_PACF.png", dpi = 300)
 
             plt.close("all")
@@ -147,7 +147,7 @@ class Plotting:
                     
         
             smp.plot_pacf(df.loc[i, "resid"], lags = nlg)
-            plt . title ('Log prices - '+f+' - PACF ')
+            plt . title ('Residual - '+f+' - PACF ')
             plt.savefig(folder_definer(f+"__Correlation_PACF_resid_arma")+"/"+i+"_Correlation_PACF.png", dpi = 300)
             plt.close("all")
         
@@ -248,6 +248,7 @@ class Plotting:
         bars = plt.bar(P['stock_names'], P[variable], color=P['colors'])
         x_pos = range(P['stock_names'].shape[0])
         plt.xticks(x_pos, P['stock_names'], rotation=90)
+        plt.figure().set_figheight(8)
         plt.title(obj)
         variable = variable.replace(":","_")
         plt.savefig(folder_definer(frequency+"_plot")+"/"+variable+"_"+diff+".png")

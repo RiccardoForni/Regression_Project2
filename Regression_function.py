@@ -53,8 +53,8 @@ def jungbox_test(resid,maxlag):
     ret_df=pd.DataFrame(index = resid.index, columns = lcol)
     for e in resid.index:
         temp_df= acorr_ljungbox(resid[e].T ,maxlag)
-        ret_df.loc[e,"lb_stat"] = temp_df['lb_stat']
-        ret_df.loc[e,"lb_pvalue"] = temp_df['lb_pvalue']
+        ret_df.loc[e,"lb_stat"] = temp_df['lb_stat'].values
+        ret_df.loc[e,"lb_pvalue"] = temp_df['lb_pvalue'].values
     return ret_df
 
 def adf_test(stocks,maxlag=21):

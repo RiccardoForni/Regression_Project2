@@ -26,7 +26,6 @@ Economic_Data,list_name,datess = union_sheets_value(pd . read_excel('Economy_Dat
 Interest_Rate = pd . read_excel ('Gmarket.xlsx', 'Bund')
 Stocks = pd . read_excel ('Stocks.xlsx', sheet_name=None)
 
-("Stocks")
 for f in Frequency:
     
     #Take market index depends on frequency
@@ -148,8 +147,8 @@ for f in Frequency:
     j_ret=rf.jungbox_test(arma_ret["resid"],10)
     j_ret.to_excel(rz.folder_definer(str(4)+"excel_jbox")+"ret_jbox"+f+".xlsx")
 
-    for i in j_ret.index:
-        rp.plotbar(j_ret.loc[i,:],f,str(4)+"j_ret") 
+    for i,y in zip(j_ret.index,j_ret.columns):
+        rp.plotbar(pd.Series(j_ret.loc[i,y],name = y),f,str(4)+"j_ret") 
         
 
 
@@ -273,8 +272,8 @@ for f in Frequency:
         j_ret_squared=rf.jungbox_test(arma_ret_squared["resid"],10)
         j_ret_squared.to_excel(rz.folder_definer(str(4)+"excel_jbox")+"j_ret_squared"+f+".xlsx")
 
-        for i in j_ret_squared.index:
-            rp.plotbar(j_ret.loc[i,:],f,str(4)+"j_ret") 
+        for i,y in zip(j_ret_squared.index,j_ret_squared.columns):
+            rp.plotbar(pd.Series(j_ret.loc[i,y],name = y),f,str(4)+"j_ret_squared") 
 
 
         
@@ -345,7 +344,11 @@ rp.resid_graph(arma_eco, "Monthly"+"_"+str(4), nlg = nnlg)
 j_eco=rf.jungbox_test(arma_eco["resid"],10)
 
 j_eco.to_excel(rz.folder_definer(str(4)+"excel_jbox")+"eco_jbox"+f+".xlsx")
-rp.plot_ljung_box(j_eco, f,str(4))
+
+for i,y in zip(j_eco.index,j_eco.columns):
+        rp.plotbar(pd.Series(j_eco.loc[i,y],name =  y),f,str(4)+"j_eco") 
+        
+
 
 
 df_eco_cut = Economic_Data.tail(24)
