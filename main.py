@@ -191,24 +191,40 @@ for f in Frequency:
 
     df_log_non_stat_cut = df_equity_L.dropna().tail(n).loc[:,old_non_stat]
     df_level_non_stat_cut = temp_stock.dropna().tail(n).loc[:,old_non_stat]
+    
+    arma_log = rf.arma(df_log_non_stat_cut.dropna(how="all"), str.upper(f), time_stock,
+                            maxlag = 3,
+                            criterion = "AIC")
+    
+    arma_level = rf.arma(df_level_non_stat_cut.dropna(how="all"), str.upper(f), time_stock,
+                            maxlag = 3,
+                            criterion = "AIC")
+
     print(old_non_stat)
     print(df_log_non_stat)
     lo=[]
     ll=[]
     df_next = []
-    """
+    
     for i in df_log_non_stat.columns:
         forecast,index = rf.forecast(df_log_non_stat[i], arma_log.loc[i], df_log_non_stat_cut[i], f,time_stock,n_f = n)
-        forecast,index = rf.forecast(forecast["Prediction"].astype(np.float64), arma_log.loc[i], df_log_non_stat_cut[i], f,time_stock,n_f = n)
+        forecast["Prediction"].to_excel("passing.xlsx")
+        Dataframe = pd.read_excel("passing.xlsx")
+        Dataframe = Dataframe.iloc[:,1].astype(np.float64)
+        
+        forecast,index = rf.forecast(Dataframe, arma_log.loc[i], df_log_non_stat_cut[i], f,time_stock,n_f = n,select=True)
 
-        df_next.append(rp.plot_forecast(forecast.dropna(how="all"),df_log_non_stat.dropna(how="all")[i],time_stock,f,i+"forecast_of_forecast_log"))
+        df_next.append(rp.plot_forecast(forecast.dropna(how="all"),df_log_non_stat_cut.dropna(how="all")[i],time_stock,f,i+"forecast_of_forecast_log"))
         print("ok")
 
     for i in df_level_non_stat.columns:
-        forecast,index = rf.forecast(df_level_non_stat[i], arma_log.loc[i], df_level_non_stat_cut[i], f,time_stock,n_f = n)
-        forecast,index = rf.forecast(forecast["Prediction"].astype(np.float64), arma_log.loc[i], df_level_non_stat_cut[i], f,time_stock,n_f = n)
+        forecast,index = rf.forecast(df_level_non_stat[i], arma_level.loc[i], df_level_non_stat_cut[i], f,time_stock,n_f = n)
+        forecast["Prediction"].to_excel("passing.xlsx")
+        Dataframe = pd.read_excel("passing.xlsx")
+        Dataframe = Dataframe.iloc[:,1].astype(np.float64)
+        forecast,index = rf.forecast(Dataframe, arma_level.loc[i], df_level_non_stat_cut[i], f,time_stock,n_f = n,select=True)
         df_next.append(rp.plot_forecast(forecast.dropna(how="all"),df_level_non_stat.dropna(how="all")[i],time_stock,f,i+"forecast_of_forecast_level"))
-    """
+    
 
     print("stop")
 
@@ -337,23 +353,33 @@ df_level_non_stat = Economic_Data.dropna().loc[:,old_non_stat]
 
 df_log_non_stat_cut = df_eco_ret.dropna().tail(n).loc[:,old_non_stat]
 df_level_non_stat_cut = Economic_Data.dropna().tail(n).loc[:,old_non_stat]
+arma_log = rf.arma(df_log_non_stat_cut.dropna(how="all"), str.upper(f), time_stock,
+                            maxlag = 3,
+                            criterion = "AIC")
+    
+arma_level = rf.arma(df_level_non_stat_cut.dropna(how="all"), str.upper(f), time_stock,
+                            maxlag = 3,
+                            criterion = "AIC")
+
 lo=[]
 ll=[]
 
-"""
-    
-for i in df_log_non_stat_cut.columns:
-        df = pd.DataFrame(columns = [i])
-        df[i] = df_forecast[i]["data_Pre"]
-        forecast,index = rf.forecast(df, arma_log.loc[i], df_log_non_stat_cut[i], f,time_eco,n_f = n)
-        df_forecast.append(rp.plot_forecast(forecast.dropna(how="all"),df_log_non_stat_cut.dropna(how="all")[i],time_eco,f,i+"eco_forecast_of_forecast_log"))
-
-
-for i in df_level_non_stat_cut.columns:
-        df = pd.DataFrame(columns = [i])
-        df[i] = df_forecast[i]["data_Pre"]
    
-        forecast,index = rf.forecast(df, arma_log.loc[i], df_level_non_stat_cut[i], f,time_eco,n_f = n)
-        df_forecast.append(rp.plot_forecast(forecast.dropna(how="all"),df_level_non_stat_cut.dropna(how="all")[i],time_eco,f,i+"eco_forecast_of_forecast_level"))
+for i in df_log_non_stat.columns:
+    forecast,index = rf.forecast(df_log_non_stat[i], arma_log.loc[i], df_log_non_stat_cut[i], f,time_eco,n_f = n)
+    forecast["Prediction"].to_excel("passing.xlsx")
+    Dataframe = pd.read_excel("passing.xlsx")
+    Dataframe = Dataframe.iloc[:,1].astype(np.float64)
+    
+    forecast,index = rf.forecast(Dataframe, arma_log.loc[i], df_log_non_stat_cut[i], f,time_eco,n_f = n,select=True)
 
-"""
+    df_next.append(rp.plot_forecast(forecast.dropna(how="all"),df_log_non_stat_cut.dropna(how="all")[i],time_eco,f,i+"eco_forecast_of_forecast_log"))
+    print("ok")
+
+for i in df_level_non_stat.columns:
+    forecast,index = rf.forecast(df_level_non_stat[i], arma_level.loc[i], df_level_non_stat_cut[i], f,time_eco,n_f = n)
+    forecast["Prediction"].to_excel("passing.xlsx")
+    Dataframe = pd.read_excel("passing.xlsx")
+    Dataframe = Dataframe.iloc[:,1].astype(np.float64)
+    forecast,index = rf.forecast(Dataframe, arma_level.loc[i], df_level_non_stat_cut[i], f,time_eco,n_f = n,select=True)
+    df_next.append(rp.plot_forecast(forecast.dropna(how="all"),df_level_non_stat.dropna(how="all")[i],time_stock,f,i+"eco_forecast_of_forecast_level"))

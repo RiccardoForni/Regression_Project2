@@ -102,7 +102,6 @@ def arma(df, f,time,criterion,maxlag = 2 ):
                 ts.index = pd.DatetimeIndex(ts.index).to_period(str.upper(f))
 
                 mod = tsa.ARIMA(ts, order= (i,0,j),freq=f, trend='n', enforce_stationarity=False, enforce_invertibility=False)
-                
                 res = mod.fit()
                 
                     
