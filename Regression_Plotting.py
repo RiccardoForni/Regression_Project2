@@ -72,7 +72,7 @@ class Plotting:
                 plt . plot (time_series ,stocks.loc[:,i])
                 plt . xlabel ('Time - '+frequency+' - 30/09/2013 - 30/09/2023 ')
                 plt . ylabel (i)
-                plt.savefig(folder_definer(frequency+"_LogLevel")+"/"+i+"_LogLevel.png", dpi = 300)
+                plt.savefig(folder_definer(frequency+"_Log-returns")+"/"+i+"_Log-returns.png", dpi = 300)
                 plt.close()
 
 
@@ -152,22 +152,38 @@ class Plotting:
             plt.close("all")
         
     def plot_forecast(self,df, df_ret, time,f,name):
+
+        if len(df_ret) != len(df):
+            if len(df_ret) > len(df):
+                df_ret = df_ret.iloc[:len(df)]
+            else:
+                df=df.iloc[:len(df_ret)]
+        print(len(df))
+        print(len(df_ret))
         x=  pd.date_range(time, periods=len(df_ret), freq=str.upper(f)) 
       
-        if len(x)>len(df):
-            return None
         # add the dates and the data to a new dataframe
-        df_ret = pd.DataFrame({'dates': x, 'data': df_ret})
+        df_plot = pd.DataFrame(columns=['dates','data_value','data_Pre','data_upp','data_lowe'])
+        df_plot["dates"]=x
+        df_plot["data_value"]=df_ret.values
+        df_plot["data_Pre"] = df["Prediction"]
+        df_plot["data_upp"] = df["Lower_Bound"]
+        df_plot["data_lowe"] = df["Upper_Bound"]
         # set the dataframe index to be the dates column
-        df_ret = df_ret.set_index('dates')
+        df_plot = df_plot.set_index('dates')
+        plot=df_plot.plot(title=name)
 
         # Plot each line with a label
-        plt.plot(x, df["Prediction"], label="Prediction")
-        plt.plot(x, df["Lower_Bound"], label="Lower_Bound")
-        plt.plot(x, df["Upper_Bound"], label="Upper_Bound")
-        plt.plot(x, df_ret, label="Actual Data")
-        plt.savefig(folder_definer(f+"_Forecast")+"/"+name+"_forecast.png", dpi = 300)
+        """
+        plt.plot( df["Prediction"], label="Prediction")
+        plt.plot(df["Lower_Bound"], label="Lower_Bound")
+        plt.plot( df["Upper_Bound"], label="Upper_Bound")
+        plt.plot( df_ret, label="Actual Data")
+        """
+        fig = plot.get_figure()
+        fig.savefig(folder_definer(f+"_Forecast")+"/"+name+"_forecast.png", dpi = 300)
         plt.close("all")
+        return df_plot
     
     def plot_for_random(self,frw,rw,df,f,time):
 
@@ -247,11 +263,10 @@ class Plotting:
 
         bars = plt.bar(P['stock_names'], P[variable], color=P['colors'])
         x_pos = range(P['stock_names'].shape[0])
-        plt.xticks(x_pos, P['stock_names'], rotation=90)
-        plt.figure().set_figheight(8)
+        plt.xticks(x_pos, P['stock_names'])
         plt.title(obj)
         variable = variable.replace(":","_")
-        plt.savefig(folder_definer(frequency+"_plot")+"/"+variable+"_"+diff+".png")
+        plt.savefig(folder_definer(frequency+"_plot")+"/"+variable+"_"+diff+".png",dpi=600)
         plt.close()
         
     @controlla_permesso

@@ -21,7 +21,7 @@ def stationarity_and_not_stationary(df):
     non_stat= []
     for i,j in zip(df['pvalue'], df.index):
         
-        if i > float(0.05):
+        if float(i) < float(0.05):
             stat.append(j)  
         else:
             non_stat.append(j)
@@ -124,7 +124,7 @@ def arma(df, f,time,criterion,maxlag = 2 ):
                     
         sorter = sorter.sort_values(criterion)
 
-        result_df.loc[z, :] = sorter.iloc[0,:]            
+        result_df.loc[z, :] = sorter.iloc[0,:] 
     
     return result_df
 
@@ -136,11 +136,10 @@ def forecast(df_ret, arima_res, df_cut,f,time, n_f,select=False):
     
     
     len_param = len(df_cut.index) if select is False else n_f
-
+    mini = 0 if select is False else 10
 
     
-    result_df = pd.DataFrame(index = df_ret.index[len_param:], 
-                                columns = ["Prediction", "Lower_Bound",
+    result_df = pd.DataFrame( columns = ["Prediction", "Lower_Bound",
                                         "Upper_Bound"])              
 
     dates = pd.date_range(time, periods=len(df_ret), freq=str.upper(f)) 
@@ -149,29 +148,28 @@ def forecast(df_ret, arima_res, df_cut,f,time, n_f,select=False):
     # set the dataframe index to be the dates column
     ts = ts.set_index('dates')
     ts.index = pd.DatetimeIndex(ts.index).to_period(str.upper(f))
-
-
+    print(ts.shape)
     
-    for i in range(n_f):
+    for i in range(mini,n_f):
         forecasts = []
         
-        
-        mod = tsa.ARIMA(endog = ts.iloc[:len_param +i],order= (arima_res["AR"],0,arima_res["MA"]))
-            
+        mod = tsa.ARIMA(endog = ts.iloc[:-len_param +i],order= (arima_res["AR"],0,arima_res["MA"]))
+
         
         res = mod.fit()
         
         fcast = res. get_forecast ( steps = 1)
         
         forecasts.append(fcast.predicted_mean.iloc[0])
+        
         ci = fcast.conf_int()
         forecasts.append(ci.iloc[0, 0])
         forecasts.append(ci.iloc[0, 1])
-        result_df.iloc[i,:] = forecasts
-            
-
-    result_df["true_value"] = df_ret
-    return result_df , df_ret.index[-n_f:]
+        result_df.loc[i,:] = forecasts
+    if select is False:
+        return result_df , df_ret.index[-n_f:]
+    else:
+        return result_df , df_ret
 
 def create_rw(df,time,f,n):
     random_walk = np.cumsum(np.random.normal(size=len(df.dropna())))
